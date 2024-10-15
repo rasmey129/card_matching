@@ -75,9 +75,9 @@ class _GameScreenState extends State<GameScreen> {
     cards = generateCards();  
   }
 
-  List<CardModel> generateCards() {
-    List<int> numbers = List.generate(8, (index) => index + 1);  
-    List<int> allNumbers = [...numbers, ...numbers]; 
+  List<CardModel> generateCards() {//list to generate the cards 
+    List<int> numbers = List.generate(18, (index) => index + 1);  
+    List<int> allNumbers = [...numbers, ...numbers];  
     allNumbers.shuffle();  
 
     return allNumbers.map((number) => CardModel(frontNumber: number)).toList();
@@ -85,27 +85,27 @@ class _GameScreenState extends State<GameScreen> {
 
   void handleCardTap(CardModel tappedCard) {
     if (!tappedCard.faceUp && firstFlippedCard == null) {
-     
+      // Flip the first card
       setState(() {
         tappedCard.faceUp = true;
         firstFlippedCard = tappedCard;
       });
     } else if (!tappedCard.faceUp && firstFlippedCard != null) {
-     
+      // Flip the second card and check for a match
       setState(() {
         tappedCard.faceUp = true;
       });
 
       if (firstFlippedCard!.frontNumber == tappedCard.frontNumber) {
-       
+        // Cards match, keep them face-up
         setState(() {
           firstFlippedCard!.matched = true;
           tappedCard.matched = true;
           firstFlippedCard = null;
-          checkWinCondition();  
+          checkWinCondition();  // Check if the game is won
         });
       } else {
-       
+        // Cards don't match, flip them back 
         Future.delayed(const Duration(seconds: 1), () {
           setState(() {
             firstFlippedCard!.faceUp = false;
@@ -119,7 +119,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void checkWinCondition() {
     if (cards.every((card) => card.matched)) {
-      
+      // Show a victory message when all pairs are matched
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -141,7 +141,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void resetGame() {
     setState(() {
-      cards = generateCards();  
+      cards = generateCards();  // Reset the game with new shuffled cards
     });
   }
 
@@ -153,7 +153,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,  
+          crossAxisCount: 6,  // Create a 6x6 grid
         ),
         itemCount: cards.length,
         itemBuilder: (context, index) {
