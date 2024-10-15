@@ -1,27 +1,54 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const GameCard());
+  runApp(const MyApp());
 }
 
-class GameCard extends StatelessWidget{
-  final bool faceUp;
-  final String frontImage;
-
-  const GameCard({required this.faceUp, required this.frontImage});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Card Matching Game',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const GameScreen(),
+    );
+  }
+}
+class GameCard extends StatelessWidget {
+  final bool isFaceUp;
+  final int frontNumber;
+  const GameCard({required this.isFaceUp, required this.frontNumber});
 
-  Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-       image: faceUp
-       ? DecorationImage(image: AssetImage(frontImage))
-        : DecorationImage(image: AssetImage('assets/card_back.png')),
+        borderRadius: BorderRadius.circular(8.0),
+        image: isFaceUp
+            ? null
+            : DecorationImage(
+                image: AssetImage('assets/card_back.png'),
+                fit: BoxFit.cover,
+              ), 
+        color: isFaceUp ? Colors.blue : null, 
+      ),
+      child: Center(
+        child: isFaceUp
+            ? Text(
+                '$frontNumber',  
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+              )
+            : null, 
       ),
     );
   }
 }
+
 
 class CardModel{
   final int frontNumber;
@@ -31,31 +58,53 @@ class CardModel{
   CardModel({required this.frontNumber, this.faceUp = false,this.matched = false});
 }
 
-class FlippingCard extends StatefulWidget{
-  final bool flipped;
-  const FlippingCard({required this.flipped});
+class GameScreen extends StatefulWidget {
+  const GameScreen({Key? key}) : super(key: key);
 
-  @override 
-  FlippingCardState createState() => FlippingCardState();
+  @override
+  _GameScreenState createState() => _GameScreenState();
 }
 
-class FlippingCardState extends State<FlippingCard> with SingleTickerProviderStateMixin{
-  late AnimationController controller;
-
-  @override 
-  void initState(){
+class _GameScreenState extends State<GameScreen> {
+  List<CardModel> cards = [];
+  
+  @override
+  void initState() {
     super.initState();
-    controller = AnimationController(duration: const Duration(milliseconds: 700), vsync: this,);
+    cards = generateCards();  
   }
 
-  @override 
-  Widget build(BuildContext context){
-    return AnimatedBuilder(animation: controller,builder: (context,child){
-      return Transform(
-        transform: Matrix4.rotationY(controller.value * 3.14), child: child,
-      );
-    },
-  
+  List<CardModel> generateCards() {
+    List<int> numbers = List.generate(8, (index) => index + 1);  
+    List<int> allNumbers = [...numbers, ...numbers]; 
+    allNumbers.shuffle();  
+
+    return allNumbers.map((number) => CardModel(frontNumber: number)).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Card Matching Game'),
+      ),
+      body: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,  
+        ),
+        itemCount: cards.length,
+        itemBuilder: (context, index) {
+          final card = cards[index];
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                card.faceUp = !card.faceUp;  
+              });
+            },
+            child: GameCard(isFaceUp: card.faceUp, frontNumber: card.frontNumber),
+          );
+        },
+      ),
     );
   }
 }
