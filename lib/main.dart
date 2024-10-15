@@ -24,9 +24,38 @@ class GameCard extends StatelessWidget{
 }
 
 class CardModel{
-  final String frontImage;
+  final int frontNumber;
   bool faceUp;
   bool matched;
 
-  CardModel({required this.frontImage, this.faceUp = false,this.matched = false});
+  CardModel({required this.frontNumber, this.faceUp = false,this.matched = false});
+}
+
+class FlippingCard extends StatefulWidget{
+  final bool flipped;
+  const FlippingCard({required this.flipped});
+
+  @override 
+  FlippingCardState createState() => FlippingCardState();
+}
+
+class FlippingCardState extends State<FlippingCard> with SingleTickerProviderStateMixin{
+  late AnimationController controller;
+
+  @override 
+  void initState(){
+    super.initState();
+    controller = AnimationController(duration: const Duration(milliseconds: 700), vsync: this,);
+  }
+
+  @override 
+  Widget build(BuildContext context){
+    return AnimatedBuilder(animation: controller,builder: (context,child){
+      return Transform(
+        transform: Matrix4.rotationY(controller.value * 3.14), child: child,
+      );
+    },
+  
+    );
+  }
 }
