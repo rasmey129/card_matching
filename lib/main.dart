@@ -23,3 +23,10 @@ class GameCard extends StatelessWidget{
   }
 }
 
+class CardModel{
+  final String frontImage;
+  bool faceUp;
+  bool matched;
+
+  CardModel({required this.frontImage, this.faceUp = false,this.matched = false});
+}
