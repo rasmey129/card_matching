@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 class GameCard extends StatelessWidget {
   final bool isFaceUp;
   final int frontNumber;
@@ -31,7 +32,7 @@ class GameCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.0),
         image: isFaceUp
             ? null
-            : DecorationImage(
+            : const DecorationImage(
                 image: AssetImage('assets/card_back.png'),
                 fit: BoxFit.cover,
               ), 
@@ -41,7 +42,7 @@ class GameCard extends StatelessWidget {
         child: isFaceUp
             ? Text(
                 '$frontNumber',  
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
               )
             : null, 
       ),
@@ -49,13 +50,12 @@ class GameCard extends StatelessWidget {
   }
 }
 
-
-class CardModel{
+class CardModel {
   final int frontNumber;
   bool faceUp;
   bool matched;
 
-  CardModel({required this.frontNumber, this.faceUp = false,this.matched = false});
+  CardModel({required this.frontNumber, this.faceUp = false, this.matched = false});
 }
 
 class GameScreen extends StatefulWidget {
@@ -67,6 +67,7 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   List<CardModel> cards = [];
+  CardModel? firstFlippedCard;
   
   @override
   void initState() {
@@ -80,6 +81,68 @@ class _GameScreenState extends State<GameScreen> {
     allNumbers.shuffle();  
 
     return allNumbers.map((number) => CardModel(frontNumber: number)).toList();
+  }
+
+  void handleCardTap(CardModel tappedCard) {
+    if (!tappedCard.faceUp && firstFlippedCard == null) {
+     
+      setState(() {
+        tappedCard.faceUp = true;
+        firstFlippedCard = tappedCard;
+      });
+    } else if (!tappedCard.faceUp && firstFlippedCard != null) {
+     
+      setState(() {
+        tappedCard.faceUp = true;
+      });
+
+      if (firstFlippedCard!.frontNumber == tappedCard.frontNumber) {
+       
+        setState(() {
+          firstFlippedCard!.matched = true;
+          tappedCard.matched = true;
+          firstFlippedCard = null;
+          checkWinCondition();  
+        });
+      } else {
+       
+        Future.delayed(const Duration(seconds: 1), () {
+          setState(() {
+            firstFlippedCard!.faceUp = false;
+            tappedCard.faceUp = false;
+            firstFlippedCard = null;
+          });
+        });
+      }
+    }
+  }
+
+  void checkWinCondition() {
+    if (cards.every((card) => card.matched)) {
+      
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('You Win!'),
+          content: const Text('Congratulations, you matched all the cards!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                resetGame();
+              },
+              child: const Text('Restart'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void resetGame() {
+    setState(() {
+      cards = generateCards();  
+    });
   }
 
   @override
@@ -97,9 +160,9 @@ class _GameScreenState extends State<GameScreen> {
           final card = cards[index];
           return GestureDetector(
             onTap: () {
-              setState(() {
-                card.faceUp = !card.faceUp;  
-              });
+              if (!card.matched && !card.faceUp) {
+                handleCardTap(card);
+              }
             },
             child: GameCard(isFaceUp: card.faceUp, frontNumber: card.frontNumber),
           );
